@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Economy Admin Panel - Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .status {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .api-test {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #4CAF50;
+        }
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        pre {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .info { color: #2196F3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏭 Economy Admin Panel</h1>
+        
+        <div class="status">
+            <h2>✅ Статус системы</h2>
+            <p><strong>Quarkus сервер:</strong> <span class="success">Запущен</span></p>
+            <p><strong>Время:</strong> <span id="current-time"></span></p>
+            <p><strong>Версия:</strong> v1.0.0-dev</p>
+        </div>
+
+        <div class="api-test">
+            <h3>🔧 Тестирование API</h3>
+            <button onclick="testAuth()">Тест авторизации</button>
+            <button onclick="testStats()">Тест статистики</button>
+            <button onclick="testSkills()">Тест скиллов</button>
+            <button onclick="testRecipes()">Тест рецептов</button>
+            <button onclick="testBonuses()">Тест бонусов</button>
+            
+            <div id="api-results"></div>
+        </div>
+
+        <div class="status">
+            <h3>🚀 Следующие шаги</h3>
+            <ol>
+                <li>✅ Quarkus сервер запущен и работает</li>
+                <li>✅ API эндпоинты созданы</li>
+                <li>⏳ Сборка Vue.js фронтенда</li>
+                <li>⏳ Интеграция фронтенда с бэкендом</li>
+                <li>⏳ Тестирование полной функциональности</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Обновление времени
+        function updateTime() {
+            document.getElementById('current-time').textContent = new Date().toLocaleString('ru-RU');
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // API тестирование
+        async function testAPI(endpoint, name) {
+            const resultsDiv = document.getElementById('api-results');
+            try {
+                const response = await fetch(endpoint);
+                const data = await response.json();
+                
+                resultsDiv.innerHTML += `
+                    <div style="margin: 10px 0; padding: 10px; background: rgba(76, 175, 80, 0.2); border-radius: 5px;">
+                        <strong class="success">✅ ${name}</strong>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML += `
+                    <div style="margin: 10px 0; padding: 10px; background: rgba(244, 67, 54, 0.2); border-radius: 5px;">
+                        <strong class="error">❌ ${name}</strong>
+                        <pre>Ошибка: ${error.message}</pre>
+                    </div>
+                `;
+            }
+        }
+
+        function testAuth() {
+            testAPI('/api/auth/validate', 'Валидация токена');
+        }
+
+        function testStats() {
+            testAPI('/api/admin/config/stats', 'Статистика системы');
+        }
+
+        function testSkills() {
+            testAPI('/api/admin/config/skills', 'Список скиллов');
+        }
+
+        function testRecipes() {
+            testAPI('/api/admin/config/recipes', 'Список рецептов');
+        }
+
+        function testBonuses() {
+            testAPI('/api/admin/config/bonuses', 'Список бонусов');
+        }
+
+        // Автотест при загрузке
+        setTimeout(() => {
+            console.log('🔄 Запуск автотестов...');
+            testAuth();
+            setTimeout(() => testStats(), 500);
+        }, 1000);
+    </script>
+</body>
+</html>
