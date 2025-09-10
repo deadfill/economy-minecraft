@@ -9,14 +9,22 @@
 - **Minecraft Client** (Fabric Mod) - клиентская часть с тестовыми командами
 - **Economy API** (Quarkus) - REST API для экономических операций
 - **PostgreSQL Cluster** - Master-Slave репликация (1 Primary + 2 Replica)
+- **PgBouncer** - connection pooling для PostgreSQL
 - **Redis** - кэширование и сессии
 - **NATS** - messaging между сервисами
 - **Qdrant** - векторная база данных
 
-### База данных:
+### База данных (прямое подключение):
 - **Primary (порт 5432)** - для записи операций
 - **Replica1 (порт 5433)** - для чтения (балансировка нагрузки)
 - **Replica2 (порт 5434)** - для чтения (балансировка нагрузки)
+
+### Connection Pooling (PgBouncer):
+- **PgBouncer Master (порт 6432)** - connection pooling для Primary
+- **PgBouncer Replica1 (порт 6433)** - connection pooling для Replica1
+- **PgBouncer Replica2 (порт 6434)** - connection pooling для Replica2
+
+Приложение использует PgBouncer для всех подключений к базе данных.
 
 ## 🚀 Быстрый старт
 
@@ -97,18 +105,26 @@ cd economy-quarkus
 
 ### Environment Variables:
 ```bash
-# PostgreSQL Primary
+# PostgreSQL Primary (direct connection)
 PG_PRIMARY_HOST=localhost
 PG_PRIMARY_PORT=5432
 PG_PRIMARY_USER=game
 PG_PRIMARY_PASS=gamepass
 PG_PRIMARY_DB=econ
 
-# PostgreSQL Replicas
+# PostgreSQL Replicas (direct connection)
 PG_REPLICA1_HOST=localhost
 PG_REPLICA1_PORT=5433
 PG_REPLICA2_HOST=localhost
 PG_REPLICA2_PORT=5434
+
+# PgBouncer Connection Pooling
+PGBOUNCER_MASTER_HOST=localhost
+PGBOUNCER_MASTER_PORT=6432
+PGBOUNCER_REPLICA1_HOST=localhost
+PGBOUNCER_REPLICA1_PORT=6433
+PGBOUNCER_REPLICA2_HOST=localhost
+PGBOUNCER_REPLICA2_PORT=6434
 
 # Redis
 REDIS_HOST=localhost
@@ -136,6 +152,10 @@ minecraft-economy/
 │   ├── init.sql             # Инициализация БД
 │   ├── primary-setup.sql    # Настройка Primary
 │   └── replica-setup.sh     # Настройка Replicas
+├── pgbouncer/                # PgBouncer configuration
+│   ├── pgbouncer.ini        # Main configuration
+│   ├── userlist.txt         # User authentication
+│   └── README.md            # PgBouncer documentation
 ├── docker-compose.yml        # Docker конфигурация
 ├── start-postgres-cluster.bat # Скрипт запуска
 └── README.md                # Документация
@@ -164,7 +184,7 @@ SELECT * FROM pg_stat_wal_receiver;
 ## 🚀 Производительность
 
 ### Оптимизации:
-- **Connection Pooling** - Agroal в Quarkus
+- **Connection Pooling** - PgBouncer для эффективного управления соединениями
 - **Read/Write Splitting** - автоматическое разделение
 - **Redis Caching** - кэширование частых запросов
 - **Load Balancing** - случайный выбор реплики для чтения
@@ -173,6 +193,33 @@ SELECT * FROM pg_stat_wal_receiver;
 - **Latency:** < 1ms для чтения из реплик
 - **Throughput:** 1000+ запросов/сек
 - **Availability:** 99.9% (с репликацией)
+
+## 🔄 PgBouncer Connection Pooling
+
+### Преимущества:
+- **Снижение накладных расходов** - переиспользование соединений вместо создания новых
+- **Лимитирование соединений** - предотвращение перегрузки базы данных
+- **Балансировка нагрузки** - равномерное распределение запросов
+- **Мониторинг** - статистика использования соединений
+
+### Настройки:
+- **Pool Mode:** session (поддержка сессий)
+- **Default Pool Size:** 20 соединений
+- **Max Client Connections:** 100 соединений
+- **Connection Lifetime:** 1 час
+
+### Мониторинг PgBouncer:
+```sql
+-- Статистика пулов
+SHOW POOLS;
+
+-- Статистика соединений
+SHOW CLIENTS;
+SHOW SERVERS;
+
+-- Общая статистика
+SHOW STATS;
+```
 
 ## 🛠️ Разработка
 
@@ -195,6 +242,37 @@ cd client && ./gradlew build
 # Integration тесты
 docker-compose up -d
 ./mvnw verify
+
+# Тестирование PgBouncer
+python test-pgbouncer-connection.py
+```
+
+## 🧪 Тестирование PgBouncer
+
+### Запуск тестов PgBouncer:
+1. Запустите все сервисы:
+   ```bash
+   docker-compose up -d
+   ```
+
+2. Запустите тест скрипт:
+   ```bash
+   python test-pgbouncer-connection.py
+   ```
+
+3. Проверьте логи приложения Quarkus:
+   ```bash
+   cd economy-quarkus
+   tail -f build/quarkus.log
+   ```
+
+### Мониторинг PgBouncer:
+```bash
+# Просмотр статистики пулов
+docker-compose exec pgbouncer-master psql -p 6432 -U postgres pgbouncer -c "SHOW POOLS;"
+
+# Просмотр клиентских соединений
+docker-compose exec pgbouncer-replica1 psql -p 6433 -U postgres pgbouncer -c "SHOW CLIENTS;"
 ```
 
 ## 📝 Лицензия

@@ -90,13 +90,66 @@ services:
       - "${NATS_PORT}:4222"
       - "${NATS_MONITOR_PORT}:8222"
 
-  qdrant:
-    image: qdrant/qdrant
+  # PgBouncer for PostgreSQL Master - для записи
+  pgbouncer-master:
+    image: edoburu/pgbouncer:latest
+    restart: unless-stopped
+    environment:
+      - DB_USER=game
+      - DB_PASSWORD=gamepass
+      - DB_HOST=postgres-primary
+      - DB_PORT=5432
+      - DB_NAME=econ
     ports:
-      - "6333:6333"
+      - "6432:5432"
     volumes:
-      - qdrant_storage:/qdrant/storage
-  
+      - ./pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    depends_on:
+      - postgres-primary
+    networks:
+      - postgres-cluster
+
+  # PgBouncer for PostgreSQL Replica 1 - для чтения
+  pgbouncer-replica1:
+    image: edoburu/pgbouncer:latest
+    restart: unless-stopped
+    environment:
+      - DB_USER=game
+      - DB_PASSWORD=gamepass
+      - DB_HOST=postgres-replica1
+      - DB_PORT=5432
+      - DB_NAME=econ
+    ports:
+      - "6433:5432"
+    volumes:
+      - ./pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    depends_on:
+      - postgres-replica1
+    networks:
+      - postgres-cluster
+
+  # PgBouncer for PostgreSQL Replica 2 - для чтения
+  pgbouncer-replica2:
+    image: edoburu/pgbouncer:latest
+    restart: unless-stopped
+    environment:
+      - DB_USER=game
+      - DB_PASSWORD=gamepass
+      - DB_HOST=postgres-replica2
+      - DB_PORT=5432
+      - DB_NAME=econ
+    ports:
+      - "6434:5432"
+    volumes:
+      - ./pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    depends_on:
+      - postgres-replica2
+    networks:
+      - postgres-cluster
+
 volumes:
   pgdata_primary:
   pgdata_replica1:
