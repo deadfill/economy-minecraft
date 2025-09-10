@@ -1,0 +1,67 @@
+{
+  "main": {
+    "enableGlobalPassword": false,
+    "globalPassword": null,
+    "tryPortalRescue": true,
+    "enableSpawnTeleportation": true,
+    "spawnOnJoin": true,
+    "kickPlayersFromFullServer": true,
+    "playerInvulnerableTime": 60,
+    "playerSpeedLimit": 100,
+    "allowMovement": false,
+    "allowBlockPunching": false,
+    "allowItemMoving": false,
+    "allowItemDropping": false,
+    "allowItemUsing": false,
+    "allowEntityPunching": false,
+    "allowChatting": false,
+    "allowPlayerDamaging": false,
+    "worldSpawn": {
+      "dimension": "minecraft:overworld",
+      "x": 0,
+      "y": 70,
+      "z": 0
+    }
+  },
+  "lang": {
+    "enterPassword": "§6Введите пароль с помощью §e/login <password>",
+    "enterNewPassword": "§6Выберите пароль с помощью §e/register <password>",
+    "wrongPassword": "§4Неверный пароль!",
+    "passwordUpdated": "§2Пароль обновлен успешно!",
+    "loginRequired": "§cВы должны войти!",
+    "loginTriesExceeded": "§4Превышено количество попыток входа!",
+    "globalPasswordSet": "§2Глобальный пароль установлен на §6%s§2!",
+    "cannotChangePassword": "§4Вы не можете изменить пароль!",
+    "cannotUnregister": "§4Вы не можете удалить регистрацию!",
+    "notAuthenticated": "§6Вы не авторизованы!\\n§6Вы можете:\\n§e/register <password>\\n§eили §e/login <password>",
+    "alreadyAuthenticated": "§6Вы уже авторизованы!",
+    "successfullyAuthenticated": "§2Успешная авторизация!",
+    "successfulLogout": "§2Успешный выход!",
+    "timeExpired": "§4Время авторизации истекло!",
+    "registerRequired": "§6Вам нужно зарегистрироваться!\\n§6Используйте: §e/register <password>",
+    "alreadyRegistered": "§6Вы уже зарегистрированы!",
+    "registerSuccess": "§2Успешная регистрация!\\n§2Теперь войдите с помощью: §e/login <password>",
+    "userdataDeleted": "§2Данные пользователя удалены!",
+    "userdataUpdated": "§2Данные пользователя обновлены!"
+  },
+  "experimental": {
+    "debugMode": false,
+    "forceoOfflineUuids": false,
+    "premiumAutoLogin": true,
+    "mojangAccountNamesValidation": true
+  },
+  "databaseConfig": {
+    "useMongoDB": false,
+    "mongoDBCredentials": {
+      "host": "mongodb://localhost:27017",
+      "database": "SimpleAuth"
+    },
+    "useMysql": true,
+    "mysqlCredentials": {
+      "host": "localhost:5432",
+      "database": "econ",
+      "username": "game", 
+      "password": "gamepass"
+    }
+  }
+}

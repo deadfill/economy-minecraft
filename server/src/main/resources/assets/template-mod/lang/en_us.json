@@ -1,0 +1,26 @@
+{
+  "key.template-mod.skills": "Open Skills Menu",
+  "category.template-mod.general": "Template Mod",
+  
+  "skill.industry.title": "Industry",
+  "skill.industry.description": "Reduces resource costs in production",
+  "skill.industry.bonus": "-%d%% resource cost reduction",
+  
+  "gui.skills.title": "🏭 Skills System",
+  "gui.skills.subtitle": "Develop skills to gain bonuses",
+  "gui.skills.training_status": "📊 Training Status",
+  "gui.skills.available_skills": "⚙️ Available Skills",
+  "gui.skills.no_training": "💤 No active training",
+  "gui.skills.loading": "🔄 Loading...",
+  "gui.skills.refresh": "🔄 Refresh",
+  "gui.skills.close": "❌ Close",
+  "gui.skills.train": "📈 Train (%s)",
+  "gui.skills.max_level": "✅ Maximum level reached",
+  "gui.skills.level": "Level %d/%d",
+  "gui.skills.training": "🏭 Training: %s → Level %d (%s)",
+  "gui.skills.start_training": "🔄 Starting training...",
+  "gui.skills.training_started": "✅ Training started!",
+  "gui.skills.training_failed": "❌ Failed to start training",
+  "gui.skills.error_loading": "❌ Loading error: %s",
+  "gui.skills.player_not_found": "❌ Player not found"
+}
