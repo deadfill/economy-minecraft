@@ -441,4 +441,62 @@ public class Repositories {
         }
     }
 
+    /**
+     * Получает экземпляр Database для прямого доступа к соединениям
+     * @return Экземпляр Database
+     */
+    public Database getDatabase() {
+        return db;
+    }
+    
+    /**
+     * Проверяет валидность сессии по токену
+     * @param token Токен сессии для проверки
+     * @return UUID пользователя, если сессия валидна, иначе null
+     * @throws Exception при ошибках работы с базой данных
+     */
+    public UUID validateSession(String token) throws Exception {
+        // Проверяем, что токен не пустой
+        if (token == null || token.isEmpty()) {
+            return null;
+        }
+        
+        UUID userUuid = null;
+        try (Connection c = db.getReadConnection();
+             PreparedStatement ps = c.prepareStatement(
+                     "SELECT user_uuid FROM user_sessions WHERE session_token = ? AND expires_at > NOW()")) {
+            ps.setString(1, token);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    userUuid = (UUID) rs.getObject("user_uuid");
+                }
+            }
+        }
+        return userUuid;
+    }
+    
+    /**
+     * Получает имя пользователя по UUID
+     * @param userUuid UUID пользователя
+     * @return Имя пользователя, если найден, иначе null
+     * @throws Exception при ошибках работы с базой данных
+     */
+    public String getUsernameByUuid(UUID userUuid) throws Exception {
+        if (userUuid == null) {
+            return null;
+        }
+        
+        String username = null;
+        try (Connection c = db.getReadConnection();
+             PreparedStatement ps = c.prepareStatement(
+                     "SELECT username FROM players WHERE uuid = ?")) {
+            ps.setObject(1, userUuid);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    username = rs.getString("username");
+                }
+            }
+        }
+        return username;
+    }
 }

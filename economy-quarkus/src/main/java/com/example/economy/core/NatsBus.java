@@ -58,9 +58,9 @@ public class NatsBus {
             // JetStream mgmt может падать если JS выключен — это нормально, мы всё равно сможем core publish-ить
             try {
                 JetStreamManagement jsm = nc.jetStreamManagement();
-                ensureStreamHasSubjects(jsm, stream, List.of("econ.*"));
+                ensureStreamHasSubjects(jsm, stream, List.of("econ.*", "player.*.skill.training", "player.*.skill.level"));
                 js = nc.jetStream();
-                LOG.info("JetStream ready: stream=" + stream + ", subjects include econ.*");
+                LOG.info("JetStream ready: stream=" + stream + ", subjects include econ.*, player.*.skill.training, player.*.skill.level");
             } catch (Exception jsErr) {
                 js = null;
                 LOG.warning("JetStream is not available now: " + jsErr.getMessage() + " (core publish will be used)");
@@ -84,6 +84,7 @@ public class NatsBus {
             StreamInfo info = jsm.getStreamInfo(stream);
             var cfg = info.getConfiguration();
             List<String> subjects = new ArrayList<>(cfg.getSubjects());
+            LOG.info("Current stream '" + stream + "' subjects: " + subjects);
             boolean changed = false;
             for (String s : needed) {
                 if (!subjects.contains(s)) {
@@ -162,4 +163,18 @@ public class NatsBus {
     // ====== опционально: небольшой API для отладки ======
     public Connection connection() { return nc; }
     public String streamName() { return stream; }
+    
+    /**
+     * Проверяет состояние JetStream и возвращает true, если он доступен.
+     */
+    public boolean isJetStreamAvailable() {
+        return js != null;
+    }
+    
+    /**
+     * Проверяет состояние подключения к NATS.
+     */
+    public boolean isConnected() {
+        return nc != null && nc.getStatus() == Connection.Status.CONNECTED;
+    }
 }

@@ -17,27 +17,23 @@ public class Database {
     private final Random random = new Random();
 
     @Inject
+    @DataSource("write")
     AgroalDataSource primaryDataSource; // Primary (default) - для записи
 
     @Inject
-    @DataSource("replica1")
-    AgroalDataSource replica1DataSource; // Replica 1 - для чтения
-
-    @Inject
-    @DataSource("replica2")
-    AgroalDataSource replica2DataSource; // Replica 2 - для чтения
+    @DataSource("read")
+    AgroalDataSource replicaDataSource; // Replica - для чтения
 
     /** Вернуть Connection для записи (primary) */
     public Connection getWriteConnection() throws SQLException {
         return primaryDataSource.getConnection();
     }
 
-    /** Вернуть Connection для чтения (случайная replica) */
+    /** Вернуть Connection для чтения (replica) */
     public Connection getReadConnection() throws SQLException {
         try {
-            // Случайно выбираем между replica1 и replica2
-            AgroalDataSource selectedReplica = random.nextBoolean() ? replica1DataSource : replica2DataSource;
-            return selectedReplica.getConnection();
+            // Используем replica datasource для чтения
+            return replicaDataSource.getConnection();
         } catch (SQLException e) {
             // Fallback на primary если replica недоступна
             LOG.warning("Replica connection failed, falling back to primary: " + e.getMessage());
@@ -77,14 +73,8 @@ public class Database {
 
     /** Получить конкретную replica по номеру (1 или 2) */
     public Connection getReplicaConnection(int replicaNumber) throws SQLException {
-        switch (replicaNumber) {
-            case 1:
-                return replica1DataSource.getConnection();
-            case 2:
-                return replica2DataSource.getConnection();
-            default:
-                throw new IllegalArgumentException("Invalid replica number: " + replicaNumber + ". Use 1 or 2.");
-        }
+        // Всегда возвращаем replica datasource, так как у нас только один источник для чтения
+        return replicaDataSource.getConnection();
     }
 
     /** Проверка доступности replica */
@@ -107,11 +97,8 @@ public class Database {
             status.append("ERROR - ").append(e.getMessage());
         }
         
-        status.append(", Replica1: ");
+        status.append(", Replica: ");
         status.append(isReplicaAvailable(1) ? "OK" : "FAILED");
-        
-        status.append(", Replica2: ");
-        status.append(isReplicaAvailable(2) ? "OK" : "FAILED");
         
         return status.toString();
     }

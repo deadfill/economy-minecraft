@@ -18,6 +18,7 @@ public class ExtendedRecipeService {
     private static final Logger LOG = Logger.getLogger(ExtendedRecipeService.class);
     
     @Inject Database db;
+    @Inject DatabaseRouter databaseRouter;
     @Inject SkillCatalogService skillCatalog;
     
     // DTO классы
@@ -74,17 +75,17 @@ public class ExtendedRecipeService {
     }
     
     /**
-     * Получить все рецепты
+     * Получить все рецепты - READ операция, идет на реплики
      */
     public List<Recipe> getAllRecipes() throws Exception {
-        List<Recipe> recipes = new ArrayList<>();
-        
-        try (Connection c = db.get();
-             PreparedStatement ps = c.prepareStatement(
-                "SELECT id, name, description, tag, base_duration_ms, enabled, category " +
-                "FROM recipes ORDER BY category, name")) {
+        return databaseRouter.executeRead(conn -> {
+            List<Recipe> recipes = new ArrayList<>();
             
-            try (ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = conn.prepareStatement(
+                "SELECT id, name, description, tag, base_duration_ms, enabled, category " +
+                "FROM recipes ORDER BY category, name");
+                 ResultSet rs = ps.executeQuery()) {
+                
                 while (rs.next()) {
                     Recipe recipe = new Recipe();
                     recipe.id = rs.getString("id");
@@ -95,18 +96,20 @@ public class ExtendedRecipeService {
                     recipe.enabled = rs.getBoolean("enabled");
                     recipe.category = rs.getString("category");
                     
-                    // Загружаем связанные данные
-                    loadRecipeInputs(recipe);
-                    loadRecipeOutputs(recipe);
-                    loadRecipeRequirements(recipe);
+                    // Загружаем связанные данные через read соединение
+                    loadRecipeInputs(recipe, conn);
+                    loadRecipeOutputs(recipe, conn);
+                    loadRecipeRequirements(recipe, conn);
                     
                     recipes.add(recipe);
                 }
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to load recipes", e);
             }
-        }
-        
-        LOG.infof("Loaded %d recipes", recipes.size());
-        return recipes;
+            
+            LOG.infof("Loaded %d recipes", recipes.size());
+            return recipes;
+        });
     }
     
     /**
@@ -225,17 +228,17 @@ public class ExtendedRecipeService {
     }
     
     /**
-     * Получить все бонусы скиллов
+     * Получить все бонусы скиллов - READ операция, идет на реплики
      */
     public List<SkillBonus> getAllSkillBonuses() throws Exception {
-        List<SkillBonus> bonuses = new ArrayList<>();
-        
-        try (Connection c = db.get();
-             PreparedStatement ps = c.prepareStatement(
-                "SELECT skill_id, kind, target, op, per_level_bps, cap_bps, enabled, description " +
-                "FROM skill_bonuses ORDER BY skill_id, kind, target")) {
+        return databaseRouter.executeRead(conn -> {
+            List<SkillBonus> bonuses = new ArrayList<>();
             
-            try (ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = conn.prepareStatement(
+                "SELECT skill_id, kind, target, op, per_level_bps, cap_bps, enabled, description " +
+                "FROM skill_bonuses ORDER BY skill_id, kind, target");
+                 ResultSet rs = ps.executeQuery()) {
+                
                 while (rs.next()) {
                     SkillBonus bonus = new SkillBonus();
                     bonus.skillId = rs.getString("skill_id");
@@ -248,11 +251,13 @@ public class ExtendedRecipeService {
                     bonus.description = rs.getString("description");
                     bonuses.add(bonus);
                 }
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to load skill bonuses", e);
             }
-        }
-        
-        LOG.infof("Loaded %d skill bonuses", bonuses.size());
-        return bonuses;
+            
+            LOG.infof("Loaded %d skill bonuses", bonuses.size());
+            return bonuses;
+        });
     }
     
     /**
@@ -312,14 +317,12 @@ public class ExtendedRecipeService {
         double multiplier = calculateDurationMultiplier(recipe.tag, playerUuid);
         return (long) (recipe.baseDurationMs * multiplier);
     }
-    
     // Приватные методы
     
-    private void loadRecipeInputs(Recipe recipe) throws Exception {
-        try (Connection c = db.get();
-             PreparedStatement ps = c.prepareStatement(
-                "SELECT item_id, quantity, description, sort_order FROM recipe_inputs " +
-                "WHERE recipe_id = ? ORDER BY sort_order")) {
+    private void loadRecipeInputs(Recipe recipe, Connection conn) throws Exception {
+        try (PreparedStatement ps = conn.prepareStatement(
+            "SELECT item_id, quantity, description, sort_order FROM recipe_inputs " +
+            "WHERE recipe_id = ? ORDER BY sort_order")) {
             ps.setString(1, recipe.id);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -334,11 +337,10 @@ public class ExtendedRecipeService {
         }
     }
     
-    private void loadRecipeOutputs(Recipe recipe) throws Exception {
-        try (Connection c = db.get();
-             PreparedStatement ps = c.prepareStatement(
-                "SELECT item_id, quantity, chance, description, sort_order FROM recipe_outputs " +
-                "WHERE recipe_id = ? ORDER BY sort_order")) {
+    private void loadRecipeOutputs(Recipe recipe, Connection conn) throws Exception {
+        try (PreparedStatement ps = conn.prepareStatement(
+            "SELECT item_id, quantity, chance, description, sort_order FROM recipe_outputs " +
+            "WHERE recipe_id = ? ORDER BY sort_order")) {
             ps.setString(1, recipe.id);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -354,11 +356,10 @@ public class ExtendedRecipeService {
         }
     }
     
-    private void loadRecipeRequirements(Recipe recipe) throws Exception {
-        try (Connection c = db.get();
-             PreparedStatement ps = c.prepareStatement(
-                "SELECT type, target, value, description FROM recipe_requirements " +
-                "WHERE recipe_id = ?")) {
+    private void loadRecipeRequirements(Recipe recipe, Connection conn) throws Exception {
+        try (PreparedStatement ps = conn.prepareStatement(
+            "SELECT type, target, value, description FROM recipe_requirements " +
+            "WHERE recipe_id = ?")) {
             ps.setString(1, recipe.id);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -373,32 +374,36 @@ public class ExtendedRecipeService {
         }
     }
     
+    // SELECT операция - читаем с реплик согласно правилам
     private Recipe getRecipeById(String id) throws Exception {
-        try (Connection c = db.get();
-             PreparedStatement ps = c.prepareStatement(
+        return databaseRouter.executeRead(conn -> {
+            try (PreparedStatement ps = conn.prepareStatement(
                 "SELECT id, name, description, tag, base_duration_ms, enabled, category " +
                 "FROM recipes WHERE id = ?")) {
-            ps.setString(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    Recipe recipe = new Recipe();
-                    recipe.id = rs.getString("id");
-                    recipe.name = rs.getString("name");
-                    recipe.description = rs.getString("description");
-                    recipe.tag = rs.getString("tag");
-                    recipe.baseDurationMs = rs.getLong("base_duration_ms");
-                    recipe.enabled = rs.getBoolean("enabled");
-                    recipe.category = rs.getString("category");
-                    
-                    loadRecipeInputs(recipe);
-                    loadRecipeOutputs(recipe);
-                    loadRecipeRequirements(recipe);
-                    
-                    return recipe;
+                ps.setString(1, id);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        Recipe recipe = new Recipe();
+                        recipe.id = rs.getString("id");
+                        recipe.name = rs.getString("name");
+                        recipe.description = rs.getString("description");
+                        recipe.tag = rs.getString("tag");
+                        recipe.baseDurationMs = rs.getLong("base_duration_ms");
+                        recipe.enabled = rs.getBoolean("enabled");
+                        recipe.category = rs.getString("category");
+                        
+                        loadRecipeInputs(recipe, conn);
+                        loadRecipeOutputs(recipe, conn);
+                        loadRecipeRequirements(recipe, conn);
+                        
+                        return recipe;
+                    }
                 }
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to get recipe by id: " + id, e);
             }
-        }
-        return null;
+            return null;
+        });
     }
     
     private void deleteRecipeRelations(Connection c, String recipeId) throws Exception {

@@ -9,6 +9,7 @@ import java.util.*;
 @ApplicationScoped
 public class SkillRepo {
     @Inject Database db;
+    @Inject DatabaseRouter databaseRouter;
 
     public static final class Skill {
         public final String id, title, description;
@@ -32,12 +33,14 @@ public class SkillRepo {
         }
     }
 
+    // SELECT операция - читаем с реплик согласно правилам
     public List<Skill> loadAllSkills() throws Exception {
-        List<Skill> out = new ArrayList<>();
-        try (Connection c = db.get();
-             PreparedStatement ps = c.prepareStatement(
-                     "select id,title,description,max_level,durations_ms,enabled,version from skills where enabled=true")) {
-            try (ResultSet rs = ps.executeQuery()) {
+        return databaseRouter.executeRead(conn -> {
+            List<Skill> out = new ArrayList<>();
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "select id,title,description,max_level,durations_ms,enabled,version from skills where enabled=true");
+                 ResultSet rs = ps.executeQuery()) {
+                
                 while (rs.next()) {
                     String id = rs.getString(1);
                     String title = rs.getString(2);
@@ -49,26 +52,32 @@ public class SkillRepo {
                     int ver = rs.getInt(7);
                     out.add(new Skill(id, title, desc, maxL, dur, enabled, ver));
                 }
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to load skills", e);
             }
-        }
-        return out;
+            return out;
+        });
     }
 
+    // SELECT операция - читаем с реплик согласно правилам
     public List<SkillBonus> loadAllBonuses() throws Exception {
-        List<SkillBonus> out = new ArrayList<>();
-        try (Connection c = db.get();
-             PreparedStatement ps = c.prepareStatement(
-                     "select skill_id, kind, target, op, per_level_bps, cap_bps, enabled from skill_bonuses where enabled=true")) {
-            try (ResultSet rs = ps.executeQuery()) {
+        return databaseRouter.executeRead(conn -> {
+            List<SkillBonus> out = new ArrayList<>();
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "select skill_id, kind, target, op, per_level_bps, cap_bps, enabled from skill_bonuses where enabled=true");
+                 ResultSet rs = ps.executeQuery()) {
+                
                 while (rs.next()) {
                     out.add(new SkillBonus(
                             rs.getString(1), rs.getString(2), rs.getString(3),
                             rs.getString(4), rs.getInt(5), rs.getInt(6), rs.getBoolean(7)
                     ));
                 }
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to load skill bonuses", e);
             }
-        }
-        return out;
+            return out;
+        });
     }
 
     private static long[] parseDurations(String json, int maxL) {
