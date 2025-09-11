@@ -78,17 +78,43 @@ services:
     restart: unless-stopped
     command: ["redis-server","--appendonly","yes","--save","900","1","300","10","60","10000"]
     ports:
-      - "${REDIS_PORT}:6379"
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redisdata:/data
+
+  economy-quarkus:
+    build:
+      context: ./economy-quarkus
+    ports:
+      - "8081:8081"
+    environment:
+      - PGBOUNCER_WRITE_HOST=pgbouncer-master
+      - PGBOUNCER_WRITE_PORT=5432
+      - PGBOUNCER_READ_HOST=pgbouncer-replica1
+      - PGBOUNCER_READ_PORT=5432
+      - POSTGRES_DB=econ
+      - POSTGRES_USER=game
+      - POSTGRES_PASSWORD=gamepass
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - NATS_SERVERS=nats://nats:4222
+    depends_on:
+      - pgbouncer-master
+      - pgbouncer-replica1
+      - pgbouncer-replica2
+      - redis
+      - nats
+    networks:
+      - postgres-cluster
+      - default
 
   nats:
     image: nats:2
     restart: unless-stopped
-    command: ["-js","-m","${NATS_MONITOR_PORT}","-DV"]
+    command: ["-js","-m","${NATS_MONITOR_PORT:-8222}","-DV"]
     ports:
-      - "${NATS_PORT}:4222"
-      - "${NATS_MONITOR_PORT}:8222"
+      - "${NATS_PORT:-4222}:4222"
+      - "${NATS_MONITOR_PORT:-8222}:8222"
 
   # PgBouncer for PostgreSQL Master - для записи
   pgbouncer-master:
@@ -103,7 +129,7 @@ services:
     ports:
       - "6432:5432"
     volumes:
-      - ./pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./pgbouncer/pgbouncer-master.ini:/etc/pgbouncer/pgbouncer.ini:ro
       - ./pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
     depends_on:
       - postgres-primary
@@ -121,9 +147,9 @@ services:
       - DB_PORT=5432
       - DB_NAME=econ
     ports:
-      - "6433:5432"
+      - "7432:5432"
     volumes:
-      - ./pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./pgbouncer/pgbouncer-replica1.ini:/etc/pgbouncer/pgbouncer.ini:ro
       - ./pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
     depends_on:
       - postgres-replica1
@@ -141,9 +167,9 @@ services:
       - DB_PORT=5432
       - DB_NAME=econ
     ports:
-      - "6434:5432"
+      - "7433:5432"
     volumes:
-      - ./pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./pgbouncer/pgbouncer-replica2.ini:/etc/pgbouncer/pgbouncer.ini:ro
       - ./pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
     depends_on:
       - postgres-replica2
