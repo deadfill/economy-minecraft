@@ -176,11 +176,11 @@ services:
     networks:
       - postgres-cluster
 
-  # GravitLauncher LaunchServer (Official Docker)
+  # GravitLauncher LaunchServer (Simplified)
   gravitlauncher:
     build:
       context: ./gravitlauncher-official
-      dockerfile: Dockerfile.launcher
+      dockerfile: Dockerfile.simple
     restart: unless-stopped
     stdin_open: true
     tty: true
@@ -213,7 +213,7 @@ services:
       dockerfile: Dockerfile.nginx
     restart: unless-stopped
     ports:
-      - "17549:80"  # Nginx proxy для GravitLauncher
+      - "17550:80"  # Nginx proxy для GravitLauncher
     volumes:
       - gravitlauncher_data:/volume
     depends_on:
