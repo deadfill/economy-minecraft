@@ -103,3 +103,7 @@ on conflict (uuid) do update set username = excluded.username;
 insert into wallets(owner_uuid, balance) values
   ('00000000-0000-0000-0000-000000000001', 100000)
 on conflict (owner_uuid) do nothing;
+
+-- ===== GravitLauncher Integration =====
+-- Include GravitLauncher tables
+\i /docker-entrypoint-initdb.d/gravit-launcher-init.sql

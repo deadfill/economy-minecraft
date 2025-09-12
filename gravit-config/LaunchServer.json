@@ -1,0 +1,94 @@
+{
+  "projectName": "EconomyMinecraft",
+  "address": "0.0.0.0",
+  "port": 9274,
+  "publicKey": "",
+  "privateKey": "",
+  "websocket": {
+    "enabled": true,
+    "address": "0.0.0.0",
+    "port": 9275
+  },
+  "auth": {
+    "std": {
+      "isDefault": true,
+      "core": {
+        "holder": {
+          "driverClass": "org.postgresql.Driver",
+          "jdbcUrl": "jdbc:postgresql://pgbouncer-master:5432/econ",
+          "username": "game",
+          "password": "gamepass",
+          "hikariMaxLifetime": 1800000,
+          "initializeAtStart": true
+        },
+        "expireSeconds": 3600,
+        "uuidColumn": "uuid",
+        "usernameColumn": "username",
+        "accessTokenColumn": "accesstoken",
+        "passwordColumn": "password",
+        "serverIDColumn": "serverid",
+        "hardwareIdColumn": "hwidId",
+        "tableHWID": "hwids",
+        "tableHWIDLog": "hwidLog",
+        "table": "users",
+        "passwordVerifier": {
+          "cost": 10,
+          "type": "bcrypt"
+        },
+        "type": "sql"
+      },
+      "textureProvider": {
+        "skinURL": "https://crafatar.com/skins/%username%",
+        "cloakURL": "https://crafatar.com/cloaks/%username%",
+        "type": "request"
+      },
+      "displayName": "EconomyAuth",
+      "visible": true
+    }
+  },
+  "permissionsHandler": {
+    "holder": {
+      "driverClass": "org.postgresql.Driver",
+      "jdbcUrl": "jdbc:postgresql://pgbouncer-master:5432/econ",
+      "username": "game",
+      "password": "gamepass",
+      "hikariMaxLifetime": 1800000,
+      "initializeAtStart": true
+    },
+    "table": "user_permissions",
+    "uuidColumn": "uuid",
+    "permissionColumn": "name",
+    "type": "sql"
+  },
+  "hwid": {
+    "handler": {
+      "type": "memory"
+    }
+  },
+  "mirrors": [],
+  "binaryName": "Launcher",
+  "copyBinaries": true,
+  "components": {
+    "authLimiter": {
+      "rateLimit": 3,
+      "rateLimitMillis": 8000
+    }
+  },
+  "netty": {
+    "fileServerEnabled": true,
+    "sendExceptionEnabled": true,
+    "ipForwarding": false,
+    "logLevel": "DEBUG"
+  },
+  "launcher": {
+    "guardType": "no",
+    "compress": true,
+    "deleteTempFiles": true,
+    "certificatePinning": false,
+    "encryptRuntime": false
+  },
+  "sign": {
+    "enabled": false
+  },
+  "env": "PROD"
+}

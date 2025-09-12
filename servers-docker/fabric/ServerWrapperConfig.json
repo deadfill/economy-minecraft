@@ -1,0 +1,34 @@
+{
+  "address": "ws://localhost:9274/api",
+  "serverName": "EconomyServer",
+  "autoloadLibraries": false,
+  "classpath": [
+    "/app/server.jar"
+  ],
+  "classLoaderConfig": "LAUNCHER",
+  "mainclass": "net.fabricmc.installer.ServerLauncher",
+  "nativesDir": "natives",
+  "args": ["nogui"],
+  "oauthExpireTime": 0,
+  "extendedTokens": {
+    "checkServer": {
+      "token": "eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJMYXVuY2hTZXJ2ZXIiLCJzZXJ2ZXJOYW1lIjoiNTUwZTg0MDAtZTI5Yi00MWQ0LWE3MTYtNDQ2NjU1NDQwMDAwIiwiYXV0aElkIjoic3RkIiwidG9rZW5UeXBlIjoiY2hlY2tTZXJ2ZXIiLCJpc1B1YmxpYyI6dHJ1ZX0.GG-NHprv5LUTXkyZH3Q1mXhbMwXRsS3QUWbbOS7Ha-WHau6LYprOjgljsrnRJMJ4rnbYx7fYFfA8Gn5AukyALw",
+      "expire": 0
+    }
+  },
+  "env": "STD",
+  "moduleConf": {
+    "modules": [],
+    "modulePath": [],
+    "exports": {},
+    "opens": {},
+    "reads": {}
+  },
+  "enableHacks": false,
+  "properties": {},
+  "configServiceSettings": {
+    "disableLogging": false,
+    "checkServerNeedProperties": false,
+    "checkServerNeedHardware": false
+  }
+}

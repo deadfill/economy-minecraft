@@ -1,0 +1,63 @@
+{
+  "title": "EconomyServer",
+  "uuid": "550e8400-e29b-41d4-a716-446655440000",
+  "version": "1.20.4",
+  "info": "Economy Minecraft Server with Fabric mods",
+  "dir": "EconomyServer",
+  "sortIndex": 0,
+  "assetIndex": "1.20",
+  "assetDir": "assets",
+  "update": [
+    "servers.dat"
+  ],
+  "updateExclusions": [],
+  "updateVerify": [
+    "libraries",
+    "natives",
+    "minecraft.jar",
+    "fabric-loader.jar",
+    "mods"
+  ],
+  "updateOptional": [],
+  "jvmArgs": [
+    "-XX:+DisableAttachMechanism",
+    "-XX:+UseG1GC",
+    "-XX:+UnlockExperimentalVMOptions",
+    "-XX:G1NewSizePercent=20",
+    "-XX:MaxGCPauseMillis=50",
+    "-XX:G1HeapRegionSize=32M",
+    "-Djava.library.path=natives",
+    "-Dfabric.development=false"
+  ],
+  "classPath": [
+    "libraries",
+    "minecraft.jar",
+    "fabric-loader.jar"
+  ],
+  "altClassPath": [],
+  "clientArgs": [],
+  "compatClasses": [],
+  "properties": {},
+  "servers": [
+    {
+      "name": "EconomyServer",
+      "serverAddress": "localhost",
+      "serverPort": 25565,
+      "isDefault": true,
+      "protocol": -1,
+      "socketPing": true
+    }
+  ],
+  "classLoaderConfig": "LAUNCHER",
+  "recommendJavaVersion": 21,
+  "minJavaVersion": 17,
+  "maxJavaVersion": 999,
+  "warnMissJavaVersion": true,
+  "settings": {
+    "ram": 0,
+    "autoEnter": false,
+    "fullScreen": false
+  },
+  "limited": false,
+  "mainClass": "net.fabricmc.loader.launch.knot.KnotClient"
+}
