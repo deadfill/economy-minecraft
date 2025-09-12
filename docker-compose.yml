@@ -7,8 +7,8 @@ services:
       - POSTGRES_USER=game
       - POSTGRES_PASSWORD=gamepass
       - POSTGRES_DB=econ
-      - POSTGRES_REPLICATION_USER=replicator
-      - POSTGRES_REPLICATION_PASSWORD=replicatorpass
+      - POSTGRES_REPLICATION_USER=game
+      - POSTGRES_REPLICATION_PASSWORD=gamepass
     ports:
       - "5432:5432"
     volumes:
@@ -37,8 +37,8 @@ services:
       - POSTGRES_DB=econ
       - PGUSER=postgres
       - POSTGRES_PRIMARY_HOST=postgres-primary
-      - POSTGRES_REPLICATION_USER=replicator
-      - POSTGRES_REPLICATION_PASSWORD=replicatorpass
+      - POSTGRES_REPLICATION_USER=game
+      - POSTGRES_REPLICATION_PASSWORD=gamepass
       - POSTGRES_SERVICE_NAME=postgres-replica1
     ports:
       - "5433:5432"
@@ -60,8 +60,8 @@ services:
       - POSTGRES_DB=econ
       - PGUSER=postgres
       - POSTGRES_PRIMARY_HOST=postgres-primary
-      - POSTGRES_REPLICATION_USER=replicator
-      - POSTGRES_REPLICATION_PASSWORD=replicatorpass
+      - POSTGRES_REPLICATION_USER=game
+      - POSTGRES_REPLICATION_PASSWORD=gamepass
       - POSTGRES_SERVICE_NAME=postgres-replica2
     ports:
       - "5434:5432"
@@ -176,12 +176,58 @@ services:
     networks:
       - postgres-cluster
 
+  # GravitLauncher LaunchServer (Official Docker)
+  gravitlauncher:
+    build:
+      context: ./gravitlauncher-official
+      dockerfile: Dockerfile.launcher
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    ports:
+      - "9274:9274"  # LaunchServer API
+    environment:
+      - ADDRESS=localhost
+      - PROJECTNAME=Minecraft Economy
+      - POSTGRES_HOST=pgbouncer-master
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=game
+      - POSTGRES_PASSWORD=gamepass
+      - POSTGRES_DB=econ
+    volumes:
+      - gravitlauncher_data:/app/data
+    depends_on:
+      - pgbouncer-master
+      - pgbouncer-replica1
+      - pgbouncer-replica2
+      - redis
+      - nats
+    networks:
+      - postgres-cluster
+      - default
+
+  # Nginx для GravitLauncher
+  gravitlauncher-nginx:
+    build:
+      context: ./gravitlauncher-official
+      dockerfile: Dockerfile.nginx
+    restart: unless-stopped
+    ports:
+      - "17549:80"  # Nginx proxy для GravitLauncher
+    volumes:
+      - gravitlauncher_data:/volume
+    depends_on:
+      - gravitlauncher
+    networks:
+      - default
+
 volumes:
   pgdata_primary:
   pgdata_replica1:
   pgdata_replica2:
   redisdata:
-  qdrant_storage:
+  gravitlauncher_data:
+  gravitlauncher_profiles:
 
 networks:
   postgres-cluster:

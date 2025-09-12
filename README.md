@@ -41,10 +41,10 @@ git clone https://github.com/yourusername/minecraft-economy.git
 cd minecraft-economy
 ```
 
-2. **Запустите инфраструктуру:**
+2. **Установка Java:**
 ```bash
 # Windows
-start-postgres-cluster.bat
+sudo apt update && sudo apt install -y openjdk-21-jdk
 
 # Linux/Mac
 docker-compose up -d

@@ -26,8 +26,12 @@ echo Starting Replica servers...
 docker-compose up -d postgres-replica1 postgres-replica2
 
 echo.
+echo Starting PgBouncer connection pooling...
+docker-compose up -d pgbouncer-master pgbouncer-replica1 pgbouncer-replica2
+
+echo.
 echo Starting other services...
-docker-compose up -d redis nats qdrant
+docker-compose up -d redis nats
 
 echo.
 echo PostgreSQL cluster setup complete!
@@ -36,9 +40,11 @@ echo Services:
 echo - Primary (Write):  localhost:5432
 echo - Replica 1 (Read): localhost:5433  
 echo - Replica 2 (Read): localhost:5434
+echo - PgBouncer Master:  localhost:6432
+echo - PgBouncer Replica1: localhost:7432
+echo - PgBouncer Replica2: localhost:7433
 echo - Redis:            localhost:6379
 echo - NATS:             localhost:4222
-echo - Qdrant:           localhost:6333
 echo.
 echo Check cluster status:
 echo docker-compose ps
