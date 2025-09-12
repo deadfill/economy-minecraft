@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class EconHttp {
-    private static final String BASE = System.getProperty("econ.base", "http://localhost:8081");
+    private static final String BASE = System.getProperty("econ.base", "http://5.129.245.85:8081");
     private static final ObjectMapper M = new ObjectMapper();
     private static final HttpClient C = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))

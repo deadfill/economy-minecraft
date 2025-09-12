@@ -297,3 +297,23 @@ MIT License - см. файл [LICENSE](LICENSE)
 ---
 
 **Сделано с ❤️ для Minecraft сообщества**
+
+
+docker compose exec postgres-primary bash -c "
+sed -i 's/host replication replicator/host replication game/g' /var/lib/postgresql/data/pg_hba.conf &&
+su - postgres -c 'psql -U game -d econ -c \"SELECT pg_reload_conf();\"'
+"
+
+docker compose exec postgres-primary bash -c "
+echo 'host replication game 0.0.0.0/0 md5' >> /var/lib/postgresql/data/pg_hba.conf &&
+su - postgres -c 'psql -U game -d econ -c \"SELECT pg_reload_conf();\"'
+"
+
+docker compose exec postgres-primary psql -U game -d econ -c "
+-- Создаем слоты репликации
+SELECT pg_create_physical_replication_slot('replica1_slot');
+SELECT pg_create_physical_replication_slot('replica2_slot');
+
+-- Проверяем что слоты созданы
+SELECT slot_name, slot_type, active FROM pg_replication_slots;
+"
