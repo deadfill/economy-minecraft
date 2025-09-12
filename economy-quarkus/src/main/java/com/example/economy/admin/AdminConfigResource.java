@@ -3,6 +3,7 @@ package com.example.economy.admin;
 import com.example.economy.core.ConfigurationManager;
 import com.example.economy.core.ExtendedRecipeService;
 import com.example.economy.core.SkillCatalogService;
+import com.example.economy.core.SkillRepo;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -27,6 +28,7 @@ public class AdminConfigResource {
     @Inject ConfigurationManager configManager;
     @Inject SkillCatalogService skillCatalog;
     @Inject ExtendedRecipeService recipeService;
+    @Inject SkillRepo skillRepo;
 
     
     // ===== ОБЩИЕ ОПЕРАЦИИ =====
@@ -172,11 +174,33 @@ public class AdminConfigResource {
             
             // Создаем скилл через ConfigurationManager
             // В реальной реализации здесь была бы логика сохранения в JSON файл
-            // Пока что просто логируем
+            // Теперь сохраняем в БД
+            var skill = new SkillRepo.Skill(
+                skillConfig.id,
+                skillConfig.title,
+                skillConfig.description,
+                skillConfig.maxLevel,
+                skillConfig.durations.stream().mapToLong(d -> d.durationMs).toArray(),
+                true, // enabled
+                1 // version
+            );
+            LOG.infof("Saving skill to database: %s", skill.id);
+            LOG.infof("Skill object: %s", skill);
+            skillRepo.saveSkill(skill);
+            LOG.infof("Skill saved to database: %s", skill.id);
+            
+            // Обновляем кэш
+            // Добавляем небольшую задержку, чтобы убедиться, что данные записались в БД
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            }
+            skillCatalog.refresh();
             
             return Response.status(201)
                 .entity(Map.of(
-                    "message", "Skill created successfully", 
+                    "message", "Skill created successfully",
                     "id", skillConfig.id,
                     "title", skillConfig.title
                 ))

@@ -172,4 +172,18 @@ public class SkillResource {
                 )
         );
     }
+    
+    // ===== Принудительное обновление кэша каталога скиллов =====
+    @POST
+    @Path("/refresh-catalog")
+    public Response refreshCatalog() {
+        try {
+            catalog.refresh();
+            return Response.ok(Map.of("status", "Catalog refreshed successfully")).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", "Failed to refresh catalog: " + e.getMessage()))
+                    .build();
+        }
+    }
 }

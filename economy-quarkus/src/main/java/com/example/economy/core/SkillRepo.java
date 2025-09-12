@@ -90,4 +90,38 @@ public class SkillRepo {
         for (int i=0;i<parts.length;i++) out[i] = Long.parseLong(parts[i].trim());
         return out;
     }
+    
+    // INSERT операция - пишем в primary согласно правилам
+    public void saveSkill(Skill skill) throws Exception {
+        databaseRouter.executeWrite(conn -> {
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "insert into skills(id,title,description,max_level,durations_ms,enabled,version) values(?,?,?,?,?,?,?) " +
+                    "on conflict (id) do update set title=excluded.title, description=excluded.description, " +
+                    "max_level=excluded.max_level, durations_ms=excluded.durations_ms, enabled=excluded.enabled, " +
+                    "version=excluded.version, updated_at=now()")) {
+                
+                // Преобразуем durationsMs в JSON
+                StringBuilder sb = new StringBuilder("[");
+                for (int i = 0; i < skill.durationsMs.length; i++) {
+                    if (i > 0) sb.append(",");
+                    sb.append(skill.durationsMs[i]);
+                }
+                sb.append("]");
+                String durationsJson = sb.toString();
+                
+                ps.setString(1, skill.id);
+                ps.setString(2, skill.title);
+                ps.setString(3, skill.description);
+                ps.setInt(4, skill.maxLevel);
+                ps.setString(5, durationsJson);
+                ps.setBoolean(6, skill.enabled);
+                ps.setInt(7, skill.version);
+                
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to save skill", e);
+            }
+            return null;
+        });
+    }
 }

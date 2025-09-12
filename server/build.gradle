@@ -49,8 +49,8 @@ dependencies {
     modImplementation(include("io.nats:jnats:2.17.6"))
 
     // owo-lib временно отключена - используем Vanilla GUI
-    // modImplementation "io.wispforest:owo-lib:${project.owo_version}"
-    // include "io.wispforest:owo-sentinel:${project.owo_version}"
+    modImplementation "io.wispforest:owo-lib:${project.owo_version}"
+    include "io.wispforest:owo-sentinel:${project.owo_version}"
 
 }
 

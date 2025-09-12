@@ -106,6 +106,12 @@ public class DatabaseTestCommands {
                     return 1;
                 })
             )
+            .then(literal("skills")
+                .executes(context -> {
+                    testSkillsLoading();
+                    return 1;
+                })
+            )
         );
     }
 
@@ -468,7 +474,7 @@ public class DatabaseTestCommands {
                     if (available) {
                         String dbName = replica1.get("database").asText();
                         boolean isReplica = replica1.get("is_replica").asBoolean();
-                        sendMessage("§a[DB Test] §f  - БД: §e" + dbName + " §f(replica: " + (isReplica ? "§aДа" : "§cНет") + "§f)");
+                        sendMessage("§a[DB Test] §f - БД: §e" + dbName + " §f(replica: " + (isReplica ? "§aДа" : "§cНет") + "§f)");
                     }
                 }
                 
@@ -481,7 +487,7 @@ public class DatabaseTestCommands {
                     if (available) {
                         String dbName = replica2.get("database").asText();
                         boolean isReplica = replica2.get("is_replica").asBoolean();
-                        sendMessage("§a[DB Test] §f  - БД: §e" + dbName + " §f(replica: " + (isReplica ? "§aДа" : "§cНет") + "§f)");
+                        sendMessage("§a[DB Test] §f - БД: §e" + dbName + " §f(replica: " + (isReplica ? "§aДа" : "§cНет") + "§f)");
                     }
                 }
                 
@@ -493,7 +499,7 @@ public class DatabaseTestCommands {
                         long playerCount = randomTest.get("players_count").asLong();
                         boolean fromReplica = randomTest.get("read_from_replica").asBoolean();
                         sendMessage("§a[DB Test] §fСлучайное чтение: §aОК");
-                        sendMessage("§a[DB Test] §f  - Игроков в БД: §e" + playerCount);
+                        sendMessage("§a[DB Test] §f - Игроков в БД: §e" + playerCount);
                         sendMessage("§a[DB Test] §f  - Читали из replica: " + (fromReplica ? "§aДа" : "§cНет"));
                     } else {
                         sendMessage("§c[DB Test] §fСлучайное чтение: §cОшибка");
@@ -628,5 +634,13 @@ public class DatabaseTestCommands {
         if (client.player != null) {
             client.player.sendSystemMessage(Component.literal(message));
         }
+    }
+    
+    /**
+     * Тест загрузки скилов из базы данных
+     */
+    private static void testSkillsLoading() {
+        sendMessage("§6[DB Test] §fЗагрузка скиллов из базы данных...");
+        SkillDemo.demonstrateSkillsLoading();
     }
 }
